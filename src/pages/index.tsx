@@ -48,7 +48,7 @@ const Home = () => {
                             <span className="font-light text-gray-600 text-center">{topic.date}</span>
 
                             {/* Title */}
-                            <div className="mt-2">
+                            <div className="mt-2 px-1">
                                 <a
                                     href={'https://cursos.alura.com.br/' + topic.link}
                                     target="_blank"
@@ -58,19 +58,17 @@ const Home = () => {
                             </div>
 
                             {/* Tags */}
-                            <div className="grid grid-cols-2 mt-4 my-auto">
-                                <div className="col-span-12 lg:col-span-8">
-                                    {topic.tags.map((tag) => (
-                                        <Tag href={tag.href} key={tag.href}>
-                                            {tag.name}
-                                        </Tag>
-                                    ))}
-                                </div>
+                            <div className="mt-4 flex flex-wrap">
+                                {topic.tags.map((tag) => (
+                                    <Tag href={tag.href} key={tag.href} className="mr-2">
+                                        {tag.name}
+                                    </Tag>
+                                ))}
                             </div>
                         </div>
 
                         {/* Right side */}
-                        <div className="w-40 flex flex-shrink-0 justify-start items-center">
+                        <div className="w-44 flex flex-shrink-0 justify-start items-center">
                             <a href="#" className="flex items-center">
                                 <img
                                     src="https://avatarfiles.alphacoders.com/165/thumb-1920-165285.png"
@@ -78,7 +76,7 @@ const Home = () => {
                                     className="mr-2 w-8 h-8 rounded-full"
                                 />
                             </a>
-                            <div className="text-gray-600 font-bold  hover:underline">{topic.scuba}</div>
+                            <div className="text-gray-600 font-bold hover:underline">{topic.scuba}</div>
                         </div>
                     </div>
                 )}
