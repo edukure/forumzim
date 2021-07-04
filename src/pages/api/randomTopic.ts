@@ -2,25 +2,45 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import axios from 'axios';
 
-import scubas from '../../data/scubas.json';
+import { connectToDatabase } from '../../config/mongodb';
 import { scrapeTopics } from '../../utils/topics';
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
-    // select one scuba randomly
-    const scuba = scubas[Math.floor(Math.random() * scubas.length)];
+    const { db } = await connectToDatabase();
+
+    const response = await db.collection('scubas').aggregate([
+        {
+            // selecionar um scuba aletório
+            $sample: {
+                size: 1,
+            },
+        },
+        {
+            // retornar apenas name e user
+            $project: {
+                _id: 0,
+                name: 1,
+                user: 1,
+            },
+        },
+    ]);
+
+    // .aggregate() retorna um AggregationCursor
+    // para pegar os dados do scuba é necessário usar .next()
+    const scuba = await response.next();
 
     const { user, name } = scuba;
 
-    // fetch their profile
+    // buscar os tópicos
     const url = `https://cursos.alura.com.br/forum/usuario/${user}/acompanhando/todos/1`;
     const { data } = await axios.get(url);
-    
-    // parse topics
+
+    // parsear
     const topics = scrapeTopics(data);
 
-    // look for topics newer than 2 weeks
+    // filtrar tópicos por data
 
-    // select one topic randomly
+    // selecionar um tópico aleatório
     let selectedTopic = topics[Math.floor(Math.random() * topics.length)];
     selectedTopic = { scuba: name, ...selectedTopic };
 
