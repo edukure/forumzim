@@ -10,6 +10,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.10",
+    "date-fns": "^2.22.1",
     "mongodb": "^3.6.9",
     "next": "latest",
     "react": "^17.0.2",
