@@ -1,9 +1,11 @@
 import cheerio from 'cheerio';
+import sub from 'date-fns/sub';
+import isWithinInterval from 'date-fns/isWithinInterval';
 
 export interface Topic {
     title: string;
     date: Date;
-    link: string;
+    href: string;
     scuba?: string;
     isSolved: boolean;
     tags: Tag[];
@@ -13,6 +15,8 @@ interface Tag {
     name: string;
     href: string;
 }
+
+let $: cheerio.Root; // cheerio variable needed at getTags
 
 const getTitleDiv = (topic: cheerio.Cheerio) => {
     const titleDiv = topic.find('.forumList-item-subject-info-title-link');
@@ -27,11 +31,11 @@ const getTitle = (topic: cheerio.Cheerio) => {
     return title;
 };
 
-const getLink = (topic: cheerio.Cheerio) => {
+const getHref = (topic: cheerio.Cheerio) => {
     const div = getTitleDiv(topic);
-    const link = div.attr().href;
+    const href = div.attr().href;
 
-    return link;
+    return `https://cursos.alura.com.br${href}`;
 };
 
 const getDate = (topic: cheerio.Cheerio) => {
@@ -45,8 +49,6 @@ const getIsSolved = (topic: cheerio.Cheerio) => {
 
     return isSolved ? true : false;
 };
-
-let $; // cheerio variable needed at getTags
 
 const getTags = (topic: cheerio.Cheerio) => {
     const tags = topic
@@ -62,15 +64,54 @@ const getTags = (topic: cheerio.Cheerio) => {
     return tags;
 };
 
-export const scrapeTopic = (topic) => {
-    const title = getTitle(topic);
-    const link = getLink(topic);
-    const date = getDate(topic);
-    const isSolved = getIsSolved(topic);
+export const filterTopicsByInterval = (topics: Topic[], interval?: Interval) => {
+    topics = topics.filter((topic) => {
+        if (isTopicWithinInterval(topic, interval)) {
+            return true;
+        }
+    });
 
-    const tags = getTags(topic);
+    return topics;
+};
 
-    return { title, link, date, isSolved, tags };
+/*
+ * Adiciona um intervalo padrão de 2 semanas atrás até agora
+ * à função isWithinInterval do date-fns
+ */
+const isTopicWithinInterval = (topic: Topic, interval: Interval = { start: null, end: null }) => {
+    interval.end = interval.end ? interval.end : new Date();
+    interval.start = interval.start ? interval.start : sub(interval.end, { weeks: 2 });
+
+    /*
+     * isWithinInterval recebe 2 parâmetros:
+     * - date: que é a data a ser avaliada
+     * - interval: um objeto com 2 Dates: {start, end}
+     * OBS: é necessário que end seja uma data posterior ao start
+     * Caso contrário um erro será disparado
+     * Ex: start: 2021-06-20T21:36:20.023Z
+     *       end: 2021-07-04T21:36:20.023Z
+     * Ou seja, apenas tópicos entre 20/6 e 4/07 serão aceitos
+     *
+     * O valor padrão para end é a data atual, pois não podemos buscar tópicos
+     * com datas futuras (ainda rs) e também porque acredito que na maioria dos casos
+     * vamos querer filtrar tópicos de uma data x até o agora.
+     *
+     * O valor padrão de start é o end subtraído 2 semanas só porque inicialmente
+     * o filtro foi criado para tópicos do foruzim.
+     */
+
+    return isWithinInterval(topic.date, interval);
+};
+
+export const parseTopic = (rawTopic: cheerio.Cheerio): Topic => {
+    const title = getTitle(rawTopic);
+    const href = getHref(rawTopic);
+    const date = getDate(rawTopic);
+    const isSolved = getIsSolved(rawTopic);
+
+    const tags = getTags(rawTopic);
+
+    return { title, href, date, isSolved, tags };
 };
 
 export const scrapeTopics = (data) => {
@@ -80,7 +121,7 @@ export const scrapeTopics = (data) => {
 
     $('.forumList-item').each((index, element) => {
         const rawTopic = $(element);
-        const topic = scrapeTopic(rawTopic);
+        const topic = parseTopic(rawTopic);
 
         topics.push(topic);
     });
