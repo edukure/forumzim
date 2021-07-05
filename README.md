@@ -4,7 +4,7 @@ Sitezim criado primariamente para selecionar um tópico aleatório de algum Scub
 
 ## Preview
 
-to-do: link da vercel
+https://forumzim-edukure.vercel.app/
 
 ## Como usar
 
@@ -16,11 +16,9 @@ to-do: link da vercel
 
 - Next.js (React, typescript)
 - TailwindCSS
-- MongoDB (to-do)
+- MongoDB
 
 ## To Do
 
-- Colocar as infos dos scubas no atlas (mongodb)
-- conectar com o banco e buscar os dados de lá
 - abstrair o componente Tópico do Home
-- formatação do horário (date-fns ?? para localização)
+- criar um service para o data scraping
