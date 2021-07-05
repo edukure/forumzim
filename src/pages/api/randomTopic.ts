@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
 import { connectToDatabase } from '../../config/mongodb';
-import { scrapeTopics } from '../../utils/topics';
+import { filterTopicsByInterval, scrapeTopics } from '../../utils/topics';
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
     const { db } = await connectToDatabase();
@@ -36,9 +36,14 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse) => {
     const { data } = await axios.get(url);
 
     // parsear
-    const topics = scrapeTopics(data);
+    let topics = scrapeTopics(data);
 
     // filtrar tópicos por data
+    topics = filterTopicsByInterval(topics);
+
+    if(topics.length < 1)  {
+        return res.status(404).json(null);
+    }
 
     // selecionar um tópico aleatório
     let selectedTopic = topics[Math.floor(Math.random() * topics.length)];

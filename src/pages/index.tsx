@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { useState } from 'react';
 
 import { Topic } from '../utils/topics';
+import { dateDistanceToToday } from '../utils/dates';
 
 import IconSolved from '../components/IconSolved';
 import Tag from '../components/Tag';
@@ -11,10 +12,19 @@ const Home = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('/api/randomTopic');
-        const randomTopic = await response.json();
-
+        const randomTopic = await fetchTopic();
         setTopic(randomTopic);
+    };
+
+    const fetchTopic = async () => {
+        const response = await fetch('/api/randomTopic');
+        if (response.ok) {
+            const randomTopic = await response.json();
+            return randomTopic;
+        } 
+        else if(response.status === 404){
+            return await fetchTopic();
+        }
     };
 
     return (
@@ -36,7 +46,7 @@ const Home = () => {
                 </div>
 
                 {topic && (
-                    <div className="flex w-full max-w-4xl bg-white rounded-lg shadow-sm hover:shadow-lg duration-500 py-4 px-2 my-6 ">
+                    <div className="flex w-full max-w-4xl bg-white rounded-lg shadow-sm hover:shadow-lg duration-500 py-4 px-2 my-6 relative">
                         {/* Left side */}
                         <div className="w-16 flex flex-shrink-0 justify-center items-center">
                             <IconSolved isSolved={topic.isSolved} />
@@ -45,12 +55,14 @@ const Home = () => {
                         {/* Center */}
                         <div className="flex flex-col flex-grow justify-center ml-2 text-left">
                             {/* Date */}
-                            <span className="font-light text-gray-600 text-center">{topic.date}</span>
+                            <span className="font-light text-gray-600 text-center absolute top-2 left-0 right-0">
+                                {dateDistanceToToday(topic.date)}
+                            </span>
 
                             {/* Title */}
-                            <div className="mt-2">
+                            <div className="mt-4 px-1">
                                 <a
-                                    href={'https://cursos.alura.com.br/' + topic.link}
+                                    href={topic.href}
                                     target="_blank"
                                     className="sm:text-sm md:text-md lg:text-lg text-gray-700 font-bold hover:underline">
                                     {topic.title}
@@ -58,19 +70,17 @@ const Home = () => {
                             </div>
 
                             {/* Tags */}
-                            <div className="grid grid-cols-2 mt-4 my-auto">
-                                <div className="col-span-12 lg:col-span-8">
-                                    {topic.tags.map((tag) => (
-                                        <Tag href={tag.href} key={tag.href}>
-                                            {tag.name}
-                                        </Tag>
-                                    ))}
-                                </div>
+                            <div className="mt-4 flex flex-wrap">
+                                {topic.tags.map((tag) => (
+                                    <Tag href={tag.href} key={tag.href} className="mr-2">
+                                        {tag.name}
+                                    </Tag>
+                                ))}
                             </div>
                         </div>
 
                         {/* Right side */}
-                        <div className="w-40 flex flex-shrink-0 justify-start items-center">
+                        <div className="w-44 flex flex-shrink-0 justify-start items-center">
                             <a href="#" className="flex items-center">
                                 <img
                                     src="https://avatarfiles.alphacoders.com/165/thumb-1920-165285.png"
@@ -78,7 +88,7 @@ const Home = () => {
                                     className="mr-2 w-8 h-8 rounded-full"
                                 />
                             </a>
-                            <div className="text-gray-600 font-bold  hover:underline">{topic.scuba}</div>
+                            <div className="text-gray-600 font-bold hover:underline">{topic.scuba}</div>
                         </div>
                     </div>
                 )}
